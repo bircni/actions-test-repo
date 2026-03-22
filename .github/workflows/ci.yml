@@ -17,10 +17,10 @@ jobs:
     steps:
       - run: sleep 20
 
-  ultra-long-job:
+  job102:
     name: ULTRA LOONG job...
     runs-on: ubuntu-latest
-    needs: job101
+    needs: [job100, job101]
     steps:
       - run: sleep 30
       - run: exit 1
