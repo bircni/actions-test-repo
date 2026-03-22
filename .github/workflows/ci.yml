@@ -1,0 +1,43 @@
+name: CI Graph Demo Fast
+
+on:
+  workflow_dispatch:
+
+jobs:
+  job100:
+    name: job 100
+    runs-on: ubuntu-latest
+    steps:
+      - run: sleep 10
+
+  job101:
+    name: job 101
+    runs-on: ubuntu-latest
+    needs: job100
+    steps:
+      - run: sleep 20
+
+  ultra-long-job:
+    name: ULTRA LOONG job...
+    runs-on: ubuntu-latest
+    needs: job101
+    steps:
+      - run: sleep 30
+      - run: exit 1
+
+  job103:
+    name: job 103
+    runs-on: ubuntu-latest
+    needs: job100
+    continue-on-error: true
+    steps:
+      - run: sleep 5
+      - run: exit 1
+
+  job104:
+    name: job 104
+    runs-on: ubuntu-latest
+    needs: [ job103, job100, job101]
+    if: always()
+    steps:
+      - run: sleep 5
