@@ -1,0 +1,28 @@
+name: Simple CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  job1:
+    name: setup
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "setup"
+
+  test:
+    name: shard ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - run: echo "running shard ${{ matrix.shard }}"
+
+  job3:
+    name: finalize
+    runs-on: ubuntu-latest
+    needs: [job1, test]
+    steps:
+      - run: echo "finalize"
