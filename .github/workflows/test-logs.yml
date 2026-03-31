@@ -1,0 +1,17 @@
+name: Test run
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  test:
+    name: test-run
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v4
+
+    - name: Echo
+      run: echo "hello"
