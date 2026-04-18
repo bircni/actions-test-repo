@@ -1,0 +1,156 @@
+# Demo workflow: dependency graph + failures + continue-on-error + artifacts.
+# Trigger manually from the Actions tab to exercise the graph and artifact APIs.
+
+name: CI Graph Demo Fast
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_label:
+        description: Label embedded in artifact metadata (tests workflow inputs)
+        required: false
+        default: demo
+      retention_days:
+        description: Artifact retention in days (1–90)
+        required: false
+        default: "7"
+  push:
+  pull_request: 
+
+concurrency:
+  group: ci-graph-demo-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  DEMO_GLOBAL_ENV: ci-graph-demo
+
+jobs:
+  job100:
+    name: job 100
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      stamp: ${{ steps.meta.outputs.stamp }}
+    steps:
+      - id: meta
+        name: Set job outputs
+        run: |
+          echo "stamp=$(date -u +%Y%m%dT%H%M%SZ)" >> "$GITHUB_OUTPUT"
+      - name: Job summary
+        run: |
+          {
+            echo "## job100"
+            echo "Label: ${{ inputs.artifact_label }}"
+            echo "Run: ${{ github.run_id }} / attempt ${{ github.run_attempt }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Produce artifact
+        run: |
+          mkdir -p out
+          echo "job100 ${{ inputs.artifact_label }}" > out/readme.txt
+          echo "${{ steps.meta.outputs.stamp }}" > out/stamp.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: job100-${{ inputs.artifact_label }}
+          path: out/
+          retention-days: ${{ fromJSON(inputs.retention_days) }}
+          if-no-files-found: error
+      - run: sleep 10
+
+  job101:
+    name: job 101
+    runs-on: ubuntu-latest
+    needs: job100
+    steps:
+      - name: Job summary
+        run: echo "### job101 (needs job100)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Produce artifact
+        run: |
+          mkdir -p data
+          echo "from job101" > data/101.txt
+          echo "stamp_from_job100=${{ needs.job100.outputs.stamp }}" > data/upstream.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: job101-${{ inputs.artifact_label }}
+          path: data/
+          retention-days: ${{ fromJSON(inputs.retention_days) }}
+      - run: sleep 20
+
+  job102:
+    name: ULTRA LOONG job...
+    runs-on: ubuntu-latest
+    needs: [job100, job101]
+    steps:
+      - name: Job summary
+        run: echo "### job102 (will fail after upload)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Produce artifact before failure
+        run: |
+          mkdir -p crash
+          echo "job102 produced this before exit 1" > crash/before-fail.txt
+      - name: Upload artifact (upload succeeds even though job fails later)
+        uses: actions/upload-artifact@v4
+        with:
+          name: job102-${{ inputs.artifact_label }}
+          path: crash/
+          retention-days: ${{ fromJSON(inputs.retention_days) }}
+      - run: sleep 30
+      - run: exit 1
+
+  job103:
+    name: job 103
+    runs-on: ubuntu-latest
+    needs: job100
+    continue-on-error: true
+    steps:
+      - name: Job summary
+        run: echo "### job103 (continue-on-error)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Produce artifact
+        run: |
+          mkdir -p soft-fail
+          echo "job103 soft failure path" > soft-fail/note.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: job103-${{ inputs.artifact_label }}
+          path: soft-fail/
+          retention-days: ${{ fromJSON(inputs.retention_days) }}
+      - run: sleep 5
+      - run: exit 1
+
+  job104:
+    name: job 104
+    runs-on: ubuntu-latest
+    needs: [job103, job100, job101]
+    if: always()
+    steps:
+      - name: Job summary (graph state)
+        run: |
+          {
+            echo "## job104 cleanup / merge"
+            echo "| upstream | result |"
+            echo "|----------|--------|"
+            echo "| job100 | ${{ needs.job100.result }} |"
+            echo "| job101 | ${{ needs.job101.result }} |"
+            echo "| job103 | ${{ needs.job103.result }} |"
+            echo "| job102 | skipped here (not in needs) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Download all demo artifacts (pattern + merge)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "job*-${{ inputs.artifact_label }}"
+          path: downloaded
+          merge-multiple: true
+      - name: List merged tree
+        run: find downloaded -type f -print -exec cat {} \;
+      - name: Upload merged bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-all-${{ inputs.artifact_label }}
+          path: downloaded/
+          retention-days: ${{ fromJSON(inputs.retention_days) }}
+      - run: sleep 5
