@@ -1,52 +1,89 @@
-name: devtest workflow-devtest-complex (run 10)
+name: devtest workflow-devtest-complex + matrix
+
 on:
   workflow_dispatch:
   push:
+
 jobs:
   job-100:
     runs-on: ubuntu-latest
     steps:
       - run: echo "job 100 (testsubname)"
+
   job-101:
     needs: [job-100]
     runs-on: ubuntu-latest
     steps:
       - run: echo "job 101"
+
   job-102:
     needs: [job-100, job-101]
     runs-on: ubuntu-latest
     steps:
       - run: echo "ULTRA LOOOOOOOOOOOONG job name 102 that exceeds the limit"
+
   job-103:
     needs: [job-100]
     runs-on: ubuntu-latest
     steps:
       - run: echo "job 103"
+
   prep-jdk:
     runs-on: ubuntu-latest
     steps:
       - run: echo "置备JDK"
+
   code-analysis:
     runs-on: ubuntu-latest
     steps:
       - run: echo "代码分析"
+
   unit-test:
     needs: [prep-jdk]
     runs-on: ubuntu-latest
     steps:
       - run: echo "单元测试"
+
   arch-test:
     needs: [prep-jdk]
     runs-on: ubuntu-latest
     steps:
       - run: echo "架构测试"
+
   integration-test:
     needs: [prep-jdk]
     runs-on: ubuntu-latest
     steps:
       - run: echo "集成测试"
+
+  # GitHub-specific: matrix expansion (multiple jobs from one job definition)
+  matrix-e2e:
+    needs: [prep-jdk]
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [1, 2, 3]
+        browser: [chromium, firefox]
+        include:
+          # Adds an extra combination beyond the cartesian product
+          - shard: 99
+            browser: webkit
+        exclude:
+          # Removes a combination from the cartesian product
+          - shard: 2
+            browser: firefox
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "matrix-e2e shard=${{ matrix.shard }} browser=${{ matrix.browser }}"
+
   build-image:
-    needs: [unit-test, arch-test, integration-test, code-analysis]
+    needs:
+      - unit-test
+      - arch-test
+      - integration-test
+      - code-analysis
+      - matrix-e2e
     runs-on: ubuntu-latest
     steps:
       - run: echo "构建镜像"
