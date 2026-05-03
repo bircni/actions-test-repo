@@ -1,0 +1,40 @@
+name: verify-deploy-graph-repro
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  seed-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "seed dev"
+
+  seed-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "seed qa"
+
+  verify-dev:
+    name: Verify Dev
+    needs: [seed-dev]
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - run: echo "verify dev"
+
+  verify-qa:
+    name: Verify QA
+    needs: [seed-qa]
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - run: echo "verify qa"
+
+  deploy:
+    name: Deploy
+    needs: [verify-dev, verify-qa]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "deploy"
