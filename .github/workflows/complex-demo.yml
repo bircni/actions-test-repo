@@ -2,7 +2,6 @@ name: devtest workflow-devtest-complex + matrix
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   job-100:
