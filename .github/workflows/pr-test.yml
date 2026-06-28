@@ -1,0 +1,105 @@
+name: test
+
+on:
+  push:
+
+jobs:
+  test-1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 1"
+
+  test-2:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 2"
+
+  test-3:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 3"
+
+  test-4:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 4"
+
+  test-5:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 5"
+
+  test-6:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 6"
+
+  test-7:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 7"
+
+  test-8:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 8"
+
+  test-9:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 9"
+
+  test-10:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 10"
+
+  test-11:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 11"
+
+  test-12:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 12"
+
+  test-13:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 13"
+
+  test-14:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 14"
+
+  test-15:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 15"
+
+  test-16:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 16"
+
+  test-17:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 17"
+
+  test-18:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 18"
+
+  test-19:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 19"
+
+  test-20:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from job 20"
